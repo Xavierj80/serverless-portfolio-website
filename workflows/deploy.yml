@@ -1,0 +1,58 @@
+name: Deploy Serverless Backend
+
+on:
+  push:
+    branches:
+      - main  # Make sure this matches your GitHub branch (e.g., 'master' or 'main')
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    # 1. SECURITY: Grant OIDC permissions to the job
+    permissions:
+      id-token: write # Required to exchange GitHub token for AWS credentials
+      contents: read  # Required to check out the repository code
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Configure AWS Credentials using OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          # This is the ARN of the IAM Role you created specifically for GitHub Actions
+          role-to-assume: arn:aws:iam::897279496475:role/MyProject_prod_CICD-Role 
+          role-session-name: github-actions-deployment
+
+      # 3. Setup Python and Install Dependencies
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12' 
+
+      - name: Install dependencies
+        # If your Lambda requires any libraries (like 'requests' or 'pydantic'), list them in a requirements.txt file
+        run: pip install -r requirements.txt 
+
+      # 4. Install AWS SAM CLI
+      # Using the setup-sam action simplifies installation
+      - name: Install SAM CLI
+        uses: aws-actions/setup-sam@v2
+
+      # 5. Build the SAM Application
+      - name: SAM Build
+        run: sam build --use-container 
+        # --use-container is best practice to ensure your local dependencies match the Lambda environment
+
+      # 6. Deploy the SAM Application
+      - name: SAM Deploy
+        run: |
+          sam deploy \
+            --stack-name MyProject-Website-Stack \
+            --region <YOUR_AWS_REGION> \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset

@@ -80,4 +80,8 @@ def create_response(status_code, message):
             'Content-Type': 'application/json'
         },
         'body': json.dumps({'message': message})
+<<<<<<< HEAD
     }
+=======
+    }
+>>>>>>> [commit hash]
