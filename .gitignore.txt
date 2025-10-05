@@ -1,0 +1,13 @@
+# Dependency Directories
+.venv/
+__pycache__/
+
+# AWS SAM build artifacts
+.aws-sam/
+
+# Operating System & IDE files
+.DS_Store
+.vscode/
+
+# Frontend/other dependencies (if applicable)
+node_modules/
