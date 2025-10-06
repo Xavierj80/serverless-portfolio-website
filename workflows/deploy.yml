@@ -52,7 +52,7 @@ jobs:
         run: |
           sam deploy \
             --stack-name MyProject-Website-Stack \
-            --region <YOUR_AWS_REGION> \
+            --region: us-east-1 \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
