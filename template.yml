@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   A serveerless contact form backend using AWS Lambda and API Gateway.
-  version 1.0.
+  version 1.1.
 
 Parameters:
   ToEmailParameter:
