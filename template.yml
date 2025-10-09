@@ -45,7 +45,7 @@ Resources:
                   - ses:SendEmail
                   - ses:SendRawEmail
                 # Best practice is to restrict the resource to your verified email address ARN
-                Resource: "*" # <-- REPLACE * with your SES Verified Identity ARN for better security
+                Resource: "arn:aws:ses:REGION:ACCOUNT_ID:identity/your_verified_email_or_domain" # <-- REPLACE * with your SES Verified Identity ARN for better security
 
       # -------------------------------------------------------
       # 2. API Gateway Trigger (The front door for the contact form)

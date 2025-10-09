@@ -52,7 +52,7 @@ def handler(event, context):
         # Send the email via SES
         ses_client.send_email(
             Source=RECIPIENT_EMAIL, # Must be a verified email/domain in SES
-            Destination={'ToAddresses': [zayjones3991@gmail.com]},
+            Destination={'ToAddresses': ['zayjones3991@gmail.com']},
             Message={
                 'Subject': {'Data': f"New Contact from {name} ({email})"},
                 'Body': {'Text': {'Data': email_body}}
@@ -80,8 +80,4 @@ def create_response(status_code, message):
             'Content-Type': 'application/json'
         },
         'body': json.dumps({'message': message})
-<<<<<<< HEAD
     }
-=======
-    }
->>>>>>> [commit hash]
