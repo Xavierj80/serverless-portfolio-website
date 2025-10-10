@@ -14,7 +14,7 @@ env:
   # The AWS region where the deployment will occur
   AWS_REGION: us-east-1
   # The S3 bucket name used to store deployment artifacts (Lambda code)
-  S3_ARTIFACT_BUCKET: xavierawws.com
+  S3_ARTIFACT_BUCKET: xavieraws.com
 
 jobs:
   deploy:
