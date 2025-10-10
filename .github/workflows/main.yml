@@ -1,5 +1,7 @@
 # Workflow to build and deploy the Serverless Application Model (SAM) backend
-name: Deploy Serverless Backend
+# Change this step in your workflow
+- name: Deploy
+  run: sam deploy --stack-name serverless-portfolio-api --region us-east-1 --no-confirm-changeset --capabilities CAPABILITY_IAM --fail-on-empty-changeset --s3-bucket "xavierawws.com"
 
 # Triggers the workflow on pushes to the 'main' branch
 on:
