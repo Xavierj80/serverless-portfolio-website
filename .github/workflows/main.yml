@@ -1,21 +1,30 @@
-- name: Deploy
-  run: sam deploy --stack-name serverless-portfolio-api --region us-east-1 --no-confirm-changeset --capabilities CAPABILITY_IAM --fail-on-empty-changeset --s3-bucket xavierawws.com
+# Workflow to build and deploy the Serverless Application Model (SAM) backend
+name: Deploy Serverless Backend
+
+# Triggers the workflow on pushes to the 'main' branch
 on:
   push:
     branches:
       - main
 
+# Define environment variables used throughout the deployment process
 env:
+  # The name of the CloudFormation stack that will be created or updated
   STACK_NAME: serverless-portfolio-api
-  AWS_REGION: us-east-1 
+  # The AWS region where the deployment will occur
+  AWS_REGION: us-east-1
+  # The S3 bucket name used to store deployment artifacts (Lambda code)
+  S3_ARTIFACT_BUCKET: xavierawws.com
 
 jobs:
   deploy:
+    # Use the latest stable Ubuntu runner for reliability
     runs-on: ubuntu-latest
     
+    # Define permissions required for OIDC authentication
     permissions:
-      id-token: write 
-      contents: read 
+      id-token: write # Required to fetch the OIDC token
+      contents: read  # Required to check out the code
 
     steps:
       - name: Checkout Code
@@ -25,8 +34,9 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ env.AWS_REGION }}
+          # CRITICAL: Your ARN appears correct based on the previous image.
           role-to-assume: arn:aws:iam::897279496475:role/MyProject_prod_CICD-Role
-          role-session-name: github-actions-deployment 
+          role-session-name: github-actions-deployment
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,12 +47,20 @@ jobs:
         run: pip install aws-sam-cli
 
       - name: SAM Build
+        # Builds the code and creates the necessary deployment packages
         run: sam build --use-container
 
       - name: SAM Deploy (Creates/Updates the CloudFormation Stack)
-        run: sam deploy
-          --stack-name ${{ env.STACK_NAME }}
-          --region ${{ env.AWS_REGION }}
+        # Deploys the artifacts to S3 and then runs CloudFormation
+        run: |
+          sam deploy
+            --stack-name ${{ env.STACK_NAME }}
+            --region ${{ env.AWS_REGION }}
+            --no-confirm-changeset
+            --capabilities CAPABILITY_IAM
+            --fail-on-empty-changeset
+            --s3-bucket ${{ env.S3_ARTIFACT_BUCKET }}
+
           --no-confirm-changeset
           --capabilities CAPABILITY_IAM
           --fail-on-empty-changeset # Prevents unnecessary runs if no code changed
