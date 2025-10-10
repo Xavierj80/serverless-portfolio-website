@@ -1,0 +1,57 @@
+# Workflow to build and deploy the Serverless Application Model (SAM) backend
+name: Deploy Serverless Backend
+
+# Triggers the workflow on pushes to the 'main' branch
+on:
+  push:
+    branches:
+      - main
+
+# Define environment variables used throughout the deployment process
+env:
+  # The name of the CloudFormation stack that will be created or updated
+  STACK_NAME: serverless-portfolio-api
+  # The AWS region where the deployment will occur
+  AWS_REGION: us-east-1 # <-- Set your preferred region here
+
+jobs:
+  deploy:
+    # Use the latest stable Ubuntu runner for reliability
+    runs-on: ubuntu-latest
+    
+    # Define permissions required for OIDC authentication
+    permissions:
+      id-token: write # Required to fetch the OIDC token
+      contents: read  # Required to check out the code
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          # CRITICAL: Replace the placeholder below with the ARN of your IAM Role 
+          # You MUST replace this entire line with the full ARN copied from AWS IAM.
+          role-to-assume: arn:aws:iam::897279496475:role/MyProject_prod_CICD-Role
+          role-session-name: github-actions-deployment # Friendly name for logs
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: SAM Build
+        run: sam build --use-container
+
+      - name: SAM Deploy (Creates/Updates the CloudFormation Stack)
+        run: sam deploy
+          --stack-name ${{ env.STACK_NAME }}
+          --region ${{ env.AWS_REGION }}
+          --no-confirm-changeset
+          --capabilities CAPABILITY_IAM
+          --fail-on-empty-changeset # Prevents unnecessary runs if no code changed
