@@ -53,15 +53,10 @@ jobs:
       - name: SAM Deploy (Creates/Updates the CloudFormation Stack)
         # Deploys the artifacts to S3 and then runs CloudFormation
         run: |
-          sam deploy
-            --stack-name ${{ env.STACK_NAME }}
-            --region ${{ env.AWS_REGION }}
-            --no-confirm-changeset
-            --capabilities CAPABILITY_IAM
-            --fail-on-empty-changeset
+          sam deploy \
+            --stack-name ${{ env.STACK_NAME }} \
+            --region ${{ env.AWS_REGION }} \
+            --no-confirm-changeset \
+            --capabilities CAPABILITY_IAM \
+            --fail-on-empty-changeset \
             --s3-bucket ${{ env.S3_ARTIFACT_BUCKET }}
-
-
-          --no-confirm-changeset
-          --capabilities CAPABILITY_IAM
-          --fail-on-empty-changeset # Prevents unnecessary runs if no code changed
