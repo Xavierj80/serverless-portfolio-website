@@ -1,74 +1,54 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  A serverless contact form backend using AWS Lambda and API Gateway.
-  version 1.1.
+  Backend API for Portfolio Contact Form
 
-Parameters:
-  ToEmailParameter:
-    Type: String
-    Description: Email address to receive contact form messages
-  FromEmailParameter:
-    Type: String
-    Description: Verified SES email address to send from
-
-# Global settings applied to all Lambda functions in this template
 Globals:
   Function:
-    Timeout: 10 # Set to 10 seconds
-    MemorySize: 128 # 128MB is typically enough for Python/Node.js
+    Runtime: python3.11
+    MemorySize: 128
+    Timeout: 10 # Ample time for Boto3 to send the email
+    CodeUri: contact_form/
 
 Resources:
-  # -----------------------------------------------------------
-  # 1. Serverless Function Definition
-  # -----------------------------------------------------------
+  # The Lambda Function that sends the email
   ContactFormFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: PortfolioContactHandler
-      Handler: app.handler                 # Assumes the entry point is the 'handler' function in 'app.py'
-      Runtime: python3.12                  # Change if you are using Node.js or a different version
-      CodeUri: backend/                    # Path to your application code folder
-      Environment:
-        Variables:
-          TO_EMAIL: !Ref ToEmailParameter
-          FROM_EMAIL: !Ref FromEmailParameter
-      
-      # Permissions (The IAM Execution Role for the Lambda)
+      Handler: app.lambda_handler
+      # Grants permissions to log and, critically, to send emails via SES
       Policies:
-        - AWSLambdaBasicExecutionRole       # Standard AWS policy to allow writing logs to CloudWatch
-        - PolicyDocument:                   # Custom policy statement for AWS SES (Email Sending)
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ses:SendEmail
-                  - ses:SendRawEmail
-                # Best practice is to restrict the resource to your verified email address ARN
-                Resource: "arn:aws:ses:REGION:ACCOUNT_ID:identity/your_verified_email_or_domain" # <-- REPLACE * with your SES Verified Identity ARN for better security
+        - AWSLambdaBasicExecutionRole
+        - Statement:
+            Effect: Allow
+            Action: ses:SendEmail # Only permission needed to send email
+            # LATEST UPDATE: Restricting permission to ONLY send from the verified xavieraws.com domain
+            Resource: !Sub "arn:aws:ses:us-east-1:897279496475:identity/xavieraws.com" 
 
-      # -------------------------------------------------------
-      # 2. API Gateway Trigger (The front door for the contact form)
-      # -------------------------------------------------------
       Events:
         ContactFormAPI:
-          Type: HttpApi 
+          Type: Api
           Properties:
             Path: /contact
             Method: POST
-            CorsConfiguration:
-              AllowOrigins:
-                - "*"
-              AllowMethods:
-                - POST
-                - OPTIONS
-              AllowHeaders:
-                - Content-Type
-                - X-Amz-Date
-                - Authorization
+            RestApiId: !Ref PortfolioContactApi # Reference the API Gateway defined below
+
+  # The API Gateway that provides the public endpoint
+  PortfolioContactApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      # Ensures the API Gateway can be called from your portfolio domain
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'"
+        AllowOrigin: "'https://xavieraws.com'" # CHANGE THIS to your live domain, if different
+        AllowCredentials: "'false'"
 
 Outputs:
-  # This output will show the deployed API endpoint URL after deployment
-  ContactFormApiUrl:
-    Description: "API Gateway endpoint URL for the Contact Form"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/contact"
+  ContactFormApi:
+    Description: "API Gateway endpoint URL for Prod stage for Contact Form function"
+    Value: !Sub "https://${PortfolioContactApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/contact"
+  ContactFormFunction:
+    Description: "Contact Form Lambda Function ARN"
+    Value: !GetAtt ContactFormFunction.Arn
