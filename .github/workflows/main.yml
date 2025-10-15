@@ -58,4 +58,4 @@ jobs:
             --region us-east-1 \
             --capabilities CAPABILITY_IAM \
             --s3-bucket xavieraws.com \
-            --template-file template.yaml
+            --template-file template.yml
