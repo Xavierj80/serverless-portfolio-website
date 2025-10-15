@@ -56,7 +56,6 @@ jobs:
           aws cloudformation deploy \
             --stack-name serverless-portfolio-api \
             --region us-east-1 \
-            --no-confirm-changeset \
             --capabilities CAPABILITY_IAM \
             --s3-bucket xavieraws.com \
             --template-file template.yaml
