@@ -2,7 +2,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Backend API for Portfolio Contact Form
-  # Empty comment just to push workflow trigger
 
 Globals:
   Function:
