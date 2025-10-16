@@ -31,6 +31,7 @@ steps:
   # 2. SAM Build (to create the deployment package)
   - name: SAM Build
     run: sam build --use-container
+    # Ensures SAM is run from the root directory where template.yaml is located
 
   # 3. CRITICAL NEW STEP: SAM Package (Uploads code artifacts to S3)
   # This step creates and uploads the zipped Lambda code to the S3 bucket, outputting to packaged.yml.
@@ -40,6 +41,7 @@ steps:
         --template-file .aws-sam/build/template.yaml \
         --s3-bucket xavieraws.com \
         --output-template-file packaged.yml
+    # No working directory needed here as it defaults to the repo root
 
   # 4. AWS CloudFormation Deploy (Uses the packaged template)
   # This step deploys the S3-aware 'packaged.yml' file.
