@@ -29,8 +29,8 @@ steps:
     run: pip install aws-sam-cli
 
   # 2. SAM Build (to create the deployment package)
-  - name: SAM Build
-    run: sam build --use-container
+  - name: SAM Build (Prepares artifacts for s3 upload)
+    run: sam build --template template.yml
     # Ensures SAM is run from the root directory where template.yaml is located
 
   # 3. FINAL DEPLOYMENT ATTEMPT: Use sam deploy with explicit artifact bucket and build output path.
@@ -38,7 +38,7 @@ steps:
   - name: Deploy Serverless Backend (Final Attempt)
     run: |
       sam deploy \
-        --template-file .aws-sam/build/template.yaml \
+        --template-file .aws-sam/build/template.yml \
         --stack-name serverless-portfolio-api \
         --region us-east-1 \
         --capabilities CAPABILITY_IAM \
