@@ -8,6 +8,7 @@ Globals:
     Runtime: python3.11
     MemorySize: 128
     Timeout: 10 # Ample time for Boto3 to send the email
+    # --- CRITICAL FIX: Use the local path to force SAM to package and upload ---
     CodeUri: contact_form/
 
 Resources:
@@ -23,7 +24,9 @@ Resources:
             Effect: Allow
             Action: ses:SendEmail # Only permission needed to send email
             # LATEST UPDATE: Restricting permission to ONLY send from the verified xavieraws.com domain
-            Resource: !Sub "arn:aws:ses:us-east-1:897279496475:identity/xavieraws.com" 
+            # IMPORTANT: The Resource ARN below uses a specific account ID (897279496475).
+            # This ID must be accurate for your account and region (us-east-1).
+            Resource: !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/xavieraws.com" 
 
       Events:
         ContactFormAPI:
