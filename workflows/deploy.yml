@@ -17,7 +17,7 @@ AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 AWS_REGION: us-east-1
 
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions:checkout@v4
 
   # 1. Setup AWS CLI and SAM CLI
   - name: Set up Python
@@ -33,23 +33,15 @@ steps:
     run: sam build --use-container
     # Ensures SAM is run from the root directory where template.yaml is located
 
-  # 3. CRITICAL NEW STEP: SAM Package (Uploads code artifacts to S3)
-  # This step creates and uploads the zipped Lambda code to the S3 bucket, outputting to packaged.yml.
-  - name: SAM Package and Upload
-    run: |
-      sam package \
-        --template-file .aws-sam/build/template.yaml \
-        --s3-bucket xavieraws.com \
-        --output-template-file packaged.yml
-    # No working directory needed here as it defaults to the repo root
-
-  # 4. AWS CloudFormation Deploy (Uses the packaged template)
-  # This step deploys the S3-aware 'packaged.yml' file.
+  # 3. SIMPLIFIED DEPLOYMENT: Use sam deploy, which handles packaging/uploading automatically.
+  # This replaces the complex 'sam package' and 'aws cloudformation deploy' steps.
   - name: Deploy Serverless Backend
     run: |
-      aws cloudformation deploy \
-        --template-file packaged.yml \
+      sam deploy \
+        --template-file .aws-sam/build/template.yaml \
         --stack-name serverless-portfolio-api \
         --region us-east-1 \
         --capabilities CAPABILITY_IAM \
-        --parameter-overrides DomainName=xavieraws.com
+        --s3-bucket xavieraws.com \
+        --parameter-overrides DomainName=xavieraws.com \
+        --no-confirm-changeset
