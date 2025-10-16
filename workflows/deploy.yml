@@ -17,7 +17,7 @@ AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 AWS_REGION: us-east-1
 
 steps:
-  - uses: actions:checkout@v4
+  - uses: actions/checkout@v4
 
   # 1. Setup AWS CLI and SAM CLI
   - name: Set up Python
@@ -33,9 +33,9 @@ steps:
     run: sam build --use-container
     # Ensures SAM is run from the root directory where template.yaml is located
 
-  # 3. SIMPLIFIED DEPLOYMENT: Use sam deploy, which handles packaging/uploading automatically.
-  # This replaces the complex 'sam package' and 'aws cloudformation deploy' steps.
-  - name: Deploy Serverless Backend
+  # 3. FINAL DEPLOYMENT ATTEMPT: Use sam deploy with explicit artifact bucket and build output path.
+  # This is the most reliable method for CI/CD environments.
+  - name: Deploy Serverless Backend (Final Attempt)
     run: |
       sam deploy \
         --template-file .aws-sam/build/template.yaml \
