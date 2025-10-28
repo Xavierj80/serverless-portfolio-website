@@ -16,7 +16,7 @@ env:
   STACK_NAME: serverless-portfolio-api
   AWS_REGION: us-east-1
   # CRITICAL: Please verify this S3 bucket name is 100% correct in your AWS account
-  S3_ARTIFACT_BUCKET: xavierawws.com
+  S3_ARTIFACT_BUCKET: xavieraws.com
 
 jobs:
   deploy:
