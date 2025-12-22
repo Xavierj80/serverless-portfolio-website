@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'Backend API for Portfolio Contact Form
+
+  '
+Globals:
+  Function:
+    Runtime: python3.11
+    MemorySize: 128
+    Timeout: 10
+    CodeUri: contact_form/
+Resources:
+  ContactFormFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - Statement:
+          Effect: Allow
+          Action: ses:SendEmail
+          Resource:
+            Fn::Sub: arn:aws:ses:us-east-1:897279496475:identity/xavieraws.com
+      Events:
+        ContactFormAPI:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: POST
+            RestApiId:
+              Ref: PortfolioContactApi
+      CodeUri: s3://xavieraws.com/d41d8cd98f00b204e9800998ecf8427e
+    Metadata:
+      SamResourceId: ContactFormFunction
+  PortfolioContactApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: '''POST,OPTIONS'''
+        AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent'''
+        AllowOrigin: '''https://xavieraws.com'''
+        AllowCredentials: '''false'''
+    Metadata:
+      SamResourceId: PortfolioContactApi
+Outputs:
+  ContactFormApi:
+    Description: API Gateway endpoint URL for Prod stage for Contact Form function
+    Value:
+      Fn::Sub: https://${PortfolioContactApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/contact
+  ContactFormFunction:
+    Description: Contact Form Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - ContactFormFunction
+      - Arn
