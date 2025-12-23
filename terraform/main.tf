@@ -1,5 +1,15 @@
 terraform {
   required_version = ">= 1.0"
+
+  # 1. ADDED: Remote Backend for GitHub Actions State Sync
+  backend "s3" {
+    bucket         = "xavieraws-terraform-state" # Ensure this bucket exists!
+    key            = "frontend/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-lock"            # Manually created or via CLI
+    encrypt        = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -9,10 +19,12 @@ terraform {
 }
 
 provider "aws" {
+  region = "us-east-1"
 }
 
-# 1. S3 bucket for website (Private)
+# 2. S3 bucket for website (Renamed to match your domain)
 resource "aws_s3_bucket" "website" {
+  bucket = var.domain_name # This uses xavieraws.com
 }
 
 resource "aws_s3_bucket_public_access_block" "website" {
@@ -24,7 +36,7 @@ resource "aws_s3_bucket_public_access_block" "website" {
   restrict_public_buckets = true
 }
 
-# 2. Modern CloudFront Origin Access Control (OAC)
+# 3. Modern CloudFront Origin Access Control (OAC)
 resource "aws_cloudfront_origin_access_control" "website" {
   name                              = "s3-portfolio-oac"
   description                       = "OAC for ${var.domain_name}"
@@ -33,7 +45,7 @@ resource "aws_cloudfront_origin_access_control" "website" {
   signing_protocol                  = "sigv4"
 }
 
-# 3. S3 Bucket Policy for Private Access
+# 4. S3 Bucket Policy for Private Access
 resource "aws_s3_bucket_policy" "website" {
   bucket = aws_s3_bucket.website.id
   policy = jsonencode({
@@ -53,13 +65,13 @@ resource "aws_s3_bucket_policy" "website" {
   })
 }
 
-# 4. Reference your existing Route 53 Zone
+# 5. Reference your existing Route 53 Zone
 data "aws_route53_zone" "main" {
   name         = var.domain_name
   private_zone = false
 }
 
-# 5. CloudFront distribution with your Domain & Certificate
+# 6. CloudFront distribution
 resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -105,13 +117,12 @@ resource "aws_cloudfront_distribution" "website" {
   }
 }
 
-# 6. Route 53 Record (Overwrites your existing manual record)
+# 7. Route 53 Record
 resource "aws_route53_record" "website_alias" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"
   
-  # This tells Terraform: "It's okay that this record already exists, just update it."
   allow_overwrite = true
 
   alias {
@@ -119,4 +130,49 @@ resource "aws_route53_record" "website_alias" {
     zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
     evaluate_target_health = false
   }
+}
+# --- EXISTING CODE ABOVE ---
+# (Terraform block, S3 Bucket, CloudFront, Route 53)
+
+# --- ADD THE BACKEND CODE BELOW ---
+
+# 1. DynamoDB Table for Visitor Counter
+resource "aws_dynamodb_table" "stats" {
+  name           = "xavieraws-stats"
+  billing_mode   = "PAY_PER_REQUEST" 
+  hash_key       = "stat_name"
+
+  attribute {
+    name = "stat_name"
+    type = "S"
+  }
+}
+
+# 2. IAM Role for Lambda
+resource "aws_iam_role" "lambda_role" {
+  name = "portfolio_lambda_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+# 3. Policy to allow Lambda to talk to DynamoDB
+resource "aws_iam_role_policy" "dynamo_lambda_policy" {
+  name = "lambda_dynamo_permissions"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["dynamodb:UpdateItem", "dynamodb:GetItem"]
+      Resource = aws_dynamodb_table.stats.arn
+    }]
+  })
 }
