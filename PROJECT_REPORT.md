@@ -60,3 +60,6 @@ This timeline reflects the reality of self-taught Cloud Engineering:
 **Cloud Security:** Hardening S3 with OAC and Principle of Least Privilege IAM policies.
 **CI/CD:** Automating deployments via GitHub Actions and OIDC.
 **Serverless Architecture:** Integrating API Gateway, Lambda, and DynamoDB.
+
+**Infrastructure Diagram**
+![Infrastructure Diagram](./architecture.png)
