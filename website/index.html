@@ -8,7 +8,7 @@
 	<head>
 		<title>Cloud Engineer & Security Portfolio</title>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
@@ -55,19 +55,31 @@
 								</header>
 
 								<!-- Text stuff -->
-									<p>This page features my design and configuration projects, emphasizing my ability to resolve complex troubleshooting issues, produce thorough documentation, and manage code through GitHub.</a></p>
+									<p>This page features my design and configuration projects, emphasizing my ability to resolve complex troubleshooting issues, produce thorough documentation, and manage code through GitHub.</p>
 									<hr />
 									<h2>Project 1</h2>
+										<div class="project">
+										<h3>Bastion Forge: Immutable Compliance Vault (Founder Project)</h3>
+										<p><strong>Problem:</strong> Small healthcare, legal, and financial firms must keep records for set retention periods under HIPAA and SEC Rule 17a-4. Enterprise immutable-storage tools are priced and built for large companies, leaving smaller firms without an affordable option.</p>
+										<p><strong>What I Built:</strong> A veteran-owned “Immutability as a Service” platform. Client files go into S3 Object Lock vaults that even the administrator can’t delete before retention expires. It has Cognito login with MFA, industry-specific client portals, and continuous monitoring with GuardDuty, Security Hub, Config, and CloudTrail. All of it is deployed with Terraform.</p>
+										<p><strong>Hardest Challenge:</strong> An authentication Lambda failed for months, and the root cause turned out to be a wrong CloudWatch log path in its IAM policy. Through this problem, I learned to read IAM policies line by line.</p>
+										<p><strong>What I'd Do Differently:</strong> Start with a multi-account AWS Organizations design (separate app, vault, and security accounts) to limit the blast radius of a compromised account.</p>
+										<p><strong>Technologies:</strong> S3 Object Lock, KMS, Cognito, Lambda, CloudWatch, API Gateway, DynamoDB, Amplify, WAF, GuardDuty, Security Hub, AWS Config, CloudTrail, SNS, Route 53, Terraform, Python, JavaScript</p>
+										<p><a href="https://bastionforge.tech" target="_blank">Visit Site</a></p>
+									</div>
+									<hr />
+
+									<h2>Project 2</h2>
 									<div class="project">
 										<h3>Serverless Portfolio Website</h3>
-										<p><strong>Description:</strong> This project serves as my cloud computing foundation while also laying down the stepping stones for the Solution Architect Exam and show casing projects that have be completed.</p>
-										<p><strong>Goal:</strong>The goal of this project was to be a comprehensive showcase of my cloud engineering skills and to provide a foundation for future architectural projects.</p>
-										<p><strong>Technologies:</strong> AWS S3, Amazon CloudFront, Origin Access Control (OCA),  IAM Policies, HTTPS/SSL, Terraform, and Python.</p>
-										<p><a href="https://github.com/Xavierj80/serverless-portfolio-website" target="_blank">GitHub Repo</a></p>
+										<p><strong>Description:</strong> This project serves as my cloud computing foundation while also laying down the stepping stones for the Solutions Architect Exam and showing projects that have been completed.</p>
+										<p><strong>Goal:</strong> The goal of this project was to be a comprehensive showcase of my cloud engineering skills and to provide a foundation for future architectural projects.</p>
+										<p><strong>Technologies:</strong> AWS S3, Amazon CloudFront, Origin Access Control (OAC),  IAM Policies, HTTPS/SSL, Terraform, and Python.</p>
+										<p><a href="https://github.com/Xavierj80/serverless-portfolio-website" target="_blank ">GitHub Repo</a></p>
 									  </div>
 									<hr />
-									<header>
-									<h2>Project 2</h2>
+									
+									<h2>Project 3</h2>
 										<div class="project">
 											<h3>Personal RPG Goal Tracker</h3>
 											
@@ -93,13 +105,13 @@
 											</div>
 										</div>
 									</div> <hr/>
-									</header>
-									<h2>Project 3</h2>
+
+									<h2>Project 4</h2>
 										<div class="project">
 										<h3>Secure AI-Powered Sentiment Analyzer</h3>
-										<p><strong>Description:</strong> I developed a Secure AI-Powered Sentiment Analyzer, a serverless API on AWS designed for secure text analysis.  Using Python, Lambda, API Gateway, Comprehend, and Terraform, I built a system that analyzes text sentiment within a private network, leveraging VPC Endpoints for security.  A key challenge was configuring secure access to Comprehend without public internet exposure. This project gave me valuable experience in serverless architecture, API security, and AWS networking</p>
-										<p><strong>Goal:</strong> The goal of this project is to  create a robust, scalable, and secure serverless API that can analyze the sentiment of text data while prioritizing the privacy and security of that data.</p>
-										<p><strong>Technologies:</strong> Aws lambda, Amazon Comprehend, VPC Endpoints, API Gateway, Amazon Virtual Private Cloud, Terraform, and Python.</p>
+										<p><strong>Description:</strong> I developed a Secure AI-Powered Sentiment Analyzer, a serverless API on AWS designed for secure text analysis.  Using Python, Lambda, API Gateway, Comprehend, and Terraform, I built a system that analyzes text sentiment within a private network, leveraging VPC Endpoints for security.  A key challenge was configuring secure access to Comprehend without public internet exposure. This project gave me valuable experience in serverless architecture, API security, and AWS networking.</p>
+										<p><strong>Goal:</strong> The goal of this project is to create a robust, scalable, and secure serverless API that can analyze the sentiment of text data while prioritizing the privacy and security of that data.</p>
+										<p><strong>Technologies:</strong> AWS Lambda, Amazon Comprehend, VPC Endpoints, API Gateway, Amazon Virtual Private Cloud, Terraform, and Python.</p>
 										<p><a href="https://github.com/Xavierj80/Secure-AI-Powered-Sentiment-Analyzer" target="_blank">GitHub Repo</a></p>
 									<hr />
 
@@ -137,11 +149,11 @@
 							</section>
 							<section>
 								<h3>Phone</h3>
-								<p><a href="#">(417) 410-0699</a></p>
+								<p><a href="#">(000)000-0000</a></p>
 							</section>
 							<section>
 								<h3>Email</h3>
-								<p><a href="#">zayjones3991@gmail.com</a></p>
+								<p><a href="#">Xavierbastionforge.tech</a></p>
 							</section>
 							<section>
 								<h3>Social</h3>
@@ -154,7 +166,7 @@
 
 				<!-- Copyright -->
 					<div id="copyright">
-						<ul><li>&copy; Untitled</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
+						<ul><li>&copy; Xavier Jones</li><li>Design: <a href="https://html5up.net">HTML5 UP</a></li></ul>
 					</div>
 
 			</div>
