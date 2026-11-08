@@ -1,13 +1,15 @@
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.11"
 
-  # 1. ADDED: Remote Backend for GitHub Actions State Sync
+  # Remote state, shared by your computer and GitHub Actions.
+  # use_lockfile = lock with a small file next to the state in S3
+  # (replaces the old shared "terraform-lock" DynamoDB table).
   backend "s3" {
-    bucket         = "xavieraws-terraform-state" # Ensure this bucket exists!
-    key            = "frontend/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-lock"            # Manually created or via CLI
-    encrypt        = true
+    bucket       = "xavieraws-terraform-state"
+    key          = "frontend/terraform.tfstate"
+    region       = "us-east-1"
+    use_lockfile = true
+    encrypt      = true
   }
 
   required_providers {
@@ -19,12 +21,12 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
-# 2. S3 bucket for website (Renamed to match your domain)
+# 1. S3 bucket for the website files (private; only CloudFront can read it)
 resource "aws_s3_bucket" "website" {
-  bucket = var.domain_name # This uses xavieraws.com
+  bucket = var.domain_name # xavieraws.com
 }
 
 resource "aws_s3_bucket_public_access_block" "website" {
@@ -36,7 +38,7 @@ resource "aws_s3_bucket_public_access_block" "website" {
   restrict_public_buckets = true
 }
 
-# 3. Modern CloudFront Origin Access Control (OAC)
+# 2. CloudFront Origin Access Control (OAC)
 resource "aws_cloudfront_origin_access_control" "website" {
   name                              = "s3-portfolio-oac"
   description                       = "OAC for ${var.domain_name}"
@@ -45,17 +47,17 @@ resource "aws_cloudfront_origin_access_control" "website" {
   signing_protocol                  = "sigv4"
 }
 
-# 4. S3 Bucket Policy for Private Access
+# 3. Bucket policy: only this one CloudFront distribution may read files
 resource "aws_s3_bucket_policy" "website" {
   bucket = aws_s3_bucket.website.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Sid    = "AllowCloudFrontServicePrincipalReadOnly"
-      Effect = "Allow"
+      Sid       = "AllowCloudFrontServicePrincipalReadOnly"
+      Effect    = "Allow"
       Principal = { Service = "cloudfront.amazonaws.com" }
-      Action   = "s3:GetObject"
-      Resource = "${aws_s3_bucket.website.arn}/*"
+      Action    = "s3:GetObject"
+      Resource  = "${aws_s3_bucket.website.arn}/*"
       Condition = {
         StringEquals = {
           "AWS:SourceArn" = aws_cloudfront_distribution.website.arn
@@ -65,13 +67,13 @@ resource "aws_s3_bucket_policy" "website" {
   })
 }
 
-# 5. Reference your existing Route 53 Zone
+# 4. Existing Route 53 zone (looked up, not managed here)
 data "aws_route53_zone" "main" {
   name         = var.domain_name
   private_zone = false
 }
 
-# 6. CloudFront distribution
+# 5. CloudFront distribution
 resource "aws_cloudfront_distribution" "website" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -106,7 +108,7 @@ resource "aws_cloudfront_distribution" "website" {
   }
 
   viewer_certificate {
-    acm_certificate_arn      = "arn:aws:acm:us-east-1:897279496475:certificate/3b8e13b3-c7f3-429c-bd4f-16f11f41f326"
+    acm_certificate_arn      = var.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
@@ -122,12 +124,12 @@ resource "aws_cloudfront_distribution" "website" {
   }
 }
 
-# 7. Route 53 Record
+# 6. DNS: xavieraws.com -> CloudFront
 resource "aws_route53_record" "website_alias" {
   zone_id = data.aws_route53_zone.main.zone_id
   name    = var.domain_name
   type    = "A"
-  
+
   allow_overwrite = true
 
   alias {
@@ -137,7 +139,7 @@ resource "aws_route53_record" "website_alias" {
   }
 }
 
-# Clean URLs: /about serves about.html; old .html links redirect
+# 7. Clean URLs: /about serves about.html; old .html links redirect
 resource "aws_cloudfront_function" "clean_urls" {
   name    = "xavieraws-clean-urls"
   runtime = "cloudfront-js-2.0"
@@ -145,48 +147,5 @@ resource "aws_cloudfront_function" "clean_urls" {
   publish = true
   code    = file("${path.module}/clean-urls.js")
 }
-# --- EXISTING CODE ABOVE ---
-# (Terraform block, S3 Bucket, CloudFront, Route 53)
 
-# --- ADD THE BACKEND CODE BELOW ---
-
-# 1. DynamoDB Table for Visitor Counter
-resource "aws_dynamodb_table" "stats" {
-  name           = "xavieraws-stats"
-  billing_mode   = "PAY_PER_REQUEST" 
-  hash_key       = "stat_name"
-
-  attribute {
-    name = "stat_name"
-    type = "S"
-  }
-}
-
-# 2. IAM Role for Lambda
-resource "aws_iam_role" "lambda_role" {
-  name = "portfolio_lambda_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-    }]
-  })
-}
-
-# 3. Policy to allow Lambda to talk to DynamoDB
-resource "aws_iam_role_policy" "dynamo_lambda_policy" {
-  name = "lambda_dynamo_permissions"
-  role = aws_iam_role.lambda_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["dynamodb:UpdateItem", "dynamodb:GetItem"]
-      Resource = aws_dynamodb_table.stats.arn
-    }]
-  })
-}
+# Visitor counter (DynamoDB table + Lambda role) removed 2026-11-08.
