@@ -98,6 +98,11 @@ resource "aws_cloudfront_distribution" "website" {
     min_ttl     = 0
     default_ttl = 3600
     max_ttl     = 86400
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.clean_urls.arn
+    }
   }
 
   viewer_certificate {
@@ -130,6 +135,15 @@ resource "aws_route53_record" "website_alias" {
     zone_id                = aws_cloudfront_distribution.website.hosted_zone_id
     evaluate_target_health = false
   }
+}
+
+# Clean URLs: /about serves about.html; old .html links redirect
+resource "aws_cloudfront_function" "clean_urls" {
+  name    = "xavieraws-clean-urls"
+  runtime = "cloudfront-js-2.0"
+  comment = "Clean URLs and redirects for xavieraws.com"
+  publish = true
+  code    = file("${path.module}/clean-urls.js")
 }
 # --- EXISTING CODE ABOVE ---
 # (Terraform block, S3 Bucket, CloudFront, Route 53)
